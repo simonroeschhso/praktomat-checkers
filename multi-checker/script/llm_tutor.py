@@ -3,7 +3,7 @@ from typing import Optional
 import os, sys, shlex
 
 import yaml  # pip install pyyaml
-
+from shell import *
 from utils import *
 from common import *
 from config import *
@@ -42,10 +42,11 @@ def runLlmTutor (llmTutorPfad: str, fake_llm: bool, id: str, sampleSolution: str
     else:
         print("llmTutorPfad =", llmTutorPfad)
         print("args =", args)
-        res = runWithTimeout(args, timeout=None, what= "running llm tutor")
+        res = run(args, onError='ignore', stderrToStdout=True, captureStdout=True)
         print(res.stdout)
-        print(res.stderr)
-    return res
+
+        if res.exitcode != 0:
+            raise RuntimeError('LLM-tutor failed')
     
     
 
@@ -64,7 +65,8 @@ def check(opts: LlmTutorOptions):
             # pfad zu Musterlösung (mount a dir > tests/llm-tutor/sampleSolution > solution)
             if not assignemnt.tests:
                 configError(f'No test file defined for assignment {assignemnt.id}')
-            exSampleSolution_pfad = getSheetDir(opts.solution_dir, assignemnt.tests[0])
+            exSampleSolution_pfad = pjoin(getSolutionDir(opts.solution_dir), assignemnt.tests[0])
+
 
             # aufgabe pfad extrahieren
             if not assignemnt.extraFiles:
