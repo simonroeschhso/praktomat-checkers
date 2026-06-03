@@ -14,17 +14,27 @@ def configError(s):
 
 @dataclass
 class PythonOptions(Options):
-    sheet: str
+    sheet: Optional[str]
     assignments: Optional[str | list[str]]
     wypp: str
 
-def prepareEnv(testEnv: Optional[dict], pyPath: Optional[str]):
+def prepareEnv(testEnv: Optional[dict], searchDirs: list[str]) -> dict:
     if testEnv is None:
         testEnv = {}
     else:
         testEnv = testEnv.copy()
-    if pyPath:
+    if searchDirs:
+        l: list[str] = []
+        for x in searchDirs:
+            x = x.strip()
+            if not x:
+                x = '.'
+            x = os.path.normpath(x)
+            if x not in l:
+                l.append(x)
+        searchDirs = l
         key = 'PYTHONPATH'
+        pyPath = ':'.join(searchDirs)
         oldPyPath = os.getenv(key)
         if oldPyPath:
             pyPath = pyPath + ':' + oldPyPath
@@ -32,11 +42,10 @@ def prepareEnv(testEnv: Optional[dict], pyPath: Optional[str]):
     return testEnv
 
 def runWypp(studentFile: str, wyppPath: str, onlyRunnable: bool, typecheck: bool,
-            testFile: Optional[str]=None, testEnv: dict=None, timeout: Optional[int]=None):
+            testFile: Optional[str]=None, testEnv: Optional[dict]=None, timeout: Optional[int]=None):
     thisDir = abspath('.')
-    pyPath = wyppPath + '/python/code:' + thisDir
     # print('pyPath='+pyPath)
-    testEnv = prepareEnv(testEnv, pyPath)
+    testEnv = prepareEnv(testEnv, [wyppPath + '/python/code:', thisDir])
     args = ['python3', wyppPath + '/python/code/wypp/runYourProgram.py', '--lang', 'de']
     if testFile:
         args = args + ['--test-file', testFile]
@@ -48,13 +57,12 @@ def runWypp(studentFile: str, wyppPath: str, onlyRunnable: bool, typecheck: bool
                          env=testEnv)
     return res
 
-def runUnittest(testFile: str, searchDirs: list[Optional[str]], testEnv: dict=None,
+def runUnittest(testFile: str, searchDirs: list[str], testEnv: Optional[dict]=None,
                 timeout: Optional[int]=None):
     if not isFile(testFile):
         abort(f'Test file {testFile} does not exist')
-    testEnv = prepareEnv(testEnv, '.')
+    testEnv = prepareEnv(testEnv, ['.'] + searchDirs)
     args = ['python3', testFile]
-    debug(f'Command: {" ".join(args)}')
     res = runWithTimeout(args, timeout, f'running unittests in {testFile}', env=testEnv)
     return res
 
@@ -68,7 +76,7 @@ class LoadStudentCodeResult:
 
 LoadCheck = Literal['dont-load', 'load-no-typecheck', 'load-typecheck']
 
-def loadStudentCode(opts: Options, p: str, checkLoad: LoadCheck) -> LoadStudentCodeResult:
+def loadStudentCode(opts: PythonOptions, p: str, checkLoad: LoadCheck) -> LoadStudentCodeResult:
     """
     Checks that the student file loads ok and that the student tests are successful.
     Executed from within source dir.
@@ -122,14 +130,16 @@ You find more error messages above.''')
 If you cannot make a test succeed, you have to comment it out.''')
     return mkResult('ok')
 
-def checkFileLoadsOk(opts: Options, p: str):
+def checkFileLoadsOk(opts: PythonOptions, p: str):
     res = loadStudentCode(opts, p, 'load-typecheck')
     print(res.output)
     return res.status
 
-def checkAssignmentsLoadOk(opts: Options, ass: str | list[str]):
+def checkAssignmentsLoadOk(opts: PythonOptions, ass: str | list[str] | None):
     if isinstance(ass, str):
         ass = [ass]
+    elif ass is None:
+        ass = []
     delim = '=============================================================================='
     stats = []
     for x in ass:
@@ -183,10 +193,12 @@ class PythonTestResult:
             m1 = r1.match(l)
             m2 = r2.match(l)
             if m1 or m2:
+                total = 0
+                fail = 0
                 if m1:
                     total = int(m1.group(1))
                     fail = int(m1.group(2))
-                else:
+                elif m2:
                     total = int(m2.group(1))
                     fail = 0
                 return TestResult(testFile=testFile, testOutput=s, error=False, totalTests=total,
@@ -235,7 +247,11 @@ def getTestResult(testFile, runRes: RunResult):
     return TestResult(testFile=testFile, testOutput=runRes.stdout, error=(runRes.exitcode != 0),
             totalTests=0, testFailures=0, testErrors=0)
 
-def checkTutorTests(opts: Options, testCtx: TestContext, a: Assignment, srcDir: Optional[str], checkCtx: CheckCtx):
+def checkTutorTests(opts: PythonOptions,
+                    testCtx: TestContext,
+                    a: Assignment,
+                    srcDir: Optional[str],
+                    checkCtx: CheckCtx):
     """
     Checks the tutor tests. Executed from within the source dir.
     """
@@ -244,20 +260,26 @@ def checkTutorTests(opts: Options, testCtx: TestContext, a: Assignment, srcDir: 
         testPath = pjoin(sheetDir(opts), t)
         if a.pythonConfig.wypp:
             src = a.src
+            if src is None:
+                abort(f'Configuration error: src option not set for assignment {a.id}')
+                return
             if srcDir:
-                src = pjoin(srcDir, a.src)
+                src = pjoin(srcDir, src)
             testOut = runWypp(src, opts.wypp, onlyRunnable=False,
                               typecheck=a.pythonConfig.typecheck,
                               testFile=testPath, testEnv=testEnv, timeout=testTimeoutSeconds())
         else:
-            testOut = runUnittest(testPath, [opts.wypp + '/python/code', srcDir],
+            searchDirs = [opts.wypp + '/python/code']
+            if srcDir:
+                searchDirs.append(srcDir)
+            testOut = runUnittest(testPath, searchDirs,
                                   testEnv=testEnv, timeout=testTimeoutSeconds())
         testRes = getTestResult(t, testOut)
         testCtx.results.append(testRes)
         abortIfTestOkRequired(a, testRes, checkCtx)
     pass
 
-def checkAssignments(opts: Options, ex: Exercise, allAss: list[Assignment]):
+def checkAssignments(opts: PythonOptions, ex: Exercise, allAss: list[Assignment]):
     """
     Checks the given assignments by checking if the code loads successfully and
     if it passes the tutor tests.
@@ -311,7 +333,7 @@ def checkAssignments(opts: Options, ex: Exercise, allAss: list[Assignment]):
         checkScript(a, testCtx, sheetDir(opts), ctx)
     outputResultsAndExit(ctx)
 
-def sheetDir(opts: Options):
+def sheetDir(opts: PythonOptions):
     return getSheetDir(opts.testDir, opts.sheet)
 
 def check(opts: PythonOptions):

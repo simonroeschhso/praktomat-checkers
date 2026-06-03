@@ -8,12 +8,13 @@ from testContext import *
 
 @dataclass
 class HaskellOptions(Options):
-    sheet: str
+    sheet: Optional[str]
 
 def checkCompile(ctx: CheckCtx):
     cmd = 'stack test --only-locals'
     debug(f'Running "{cmd}"')
     tmpName = mkTempFile(suffix='.log')
+    capture = None
     try:
         if isDebug():
             capture = createTee([TEE_STDOUT, tmpName])
@@ -21,7 +22,8 @@ def checkCompile(ctx: CheckCtx):
             capture = open(tmpName, 'w')
         result = run(cmd, onError='ignore', stderrToStdout=True, captureStdout=capture)
     finally:
-        capture.close()
+        if capture:
+            capture.close()
     out = readFile(tmpName)
     if result.exitcode == 0:
         ctx.compileOutput = out
@@ -110,7 +112,7 @@ def doCheck(srcDir, sheetDir, sheet, resultFile):
     # do the checks
     missing = 0
     for a in ex.assignments:
-        if not isFile(a.src):
+        if a.src and not isFile(a.src):
             print(f'ERROR: File {a.src} not included in submission. I found the following .hs files:')
             run(f'find . -name "*.hs" | head -20')
             missing += 1
@@ -126,7 +128,7 @@ def doCheck(srcDir, sheetDir, sheet, resultFile):
         checkScript(a, testCtx, sheetDir, ctx)
     outputResultsAndExit(ctx)
 
-def check(opts: Options):
+def check(opts: HaskellOptions):
     nestedSourceDir = findSolutionDir(opts.sourceDir)
     with tempDir(dir='.') as d:
         with workingDir(d):

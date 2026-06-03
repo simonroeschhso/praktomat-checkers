@@ -32,10 +32,11 @@ def test_python06():
 
 def test_python07():
     pythonTests = [('solution-good', 0), ('solution-wrapped', 0), ('solution-partial', 121), ('solution-partial-missing', 121),
-                ('solution-fail', 121), ('solution-error', 1), ('solution-with-own-test-errors', 0),
+                ('solution-fail', 121), ('solution-error', 1), ('solution-with-own-test-errors', 121),
                 ('solution-timeout', 1)]
-
     for d, ecode in pythonTests:
+        print()
+        print(d)
         sheetDirLocal = f'{praktomatCheckersLocal}/multi-checker/tests/python-wypp/03'
         submissionDir = f'{localTestDir}/03/{d}/'
         cmd = f'python3 {checkScript} {checkScriptArgs} python --wypp {wyppDir} --sheet 03'

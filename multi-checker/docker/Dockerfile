@@ -41,10 +41,10 @@ RUN apt-get update && apt-get install -yq \
   && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages libPyshell==0.5.0 aiofiles aiohttp
 
-# WYPP, version 2.0.7 (2025-10-14)
+# WYPP, version 2.2.1 plus some fixes (2026-03-26)
 RUN mkdir /wypp
 ADD ./git-clone /git-clone
-RUN bash /git-clone https://github.com/skogsbaer/write-your-python-program.git 745fb2b5a59081c0f4993ddedd8f902bfb73b4df /wypp
+RUN bash /git-clone https://github.com/skogsbaer/write-your-python-program.git 324674a3f12b0f4d5dc75d5123b9842f9aee54ea /wypp
 RUN rm -rf /wypp/.git
 
 # llm-tutor

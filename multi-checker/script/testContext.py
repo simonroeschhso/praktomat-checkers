@@ -16,8 +16,8 @@ class CheckCtx:
     styleResult: Optional[StyleResult]=None
     outFile: Optional[str] = None
     @staticmethod
-    def empty(t: str, outFile: str) -> CheckCtx:
-        return CheckCtx(t, False, None, [], outFile=outFile)
+    def empty(t: str, outFile: Optional[str]) -> CheckCtx:
+        return CheckCtx(t, 'FAIL', None, [], outFile=outFile)
     def appendCompileOutput(self, s: str):
         if self.compileOutput:
             self.compileOutput = self.compileOutput + '\n' + s
@@ -38,7 +38,7 @@ class CheckCtx:
 
 @dataclass
 class TestContext:
-    sheet: str
+    sheet: Optional[str]
     assignment: Assignment
     results: list[TestResult]
     def summarizeResults(self) -> TestResult:
