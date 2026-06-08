@@ -13,11 +13,32 @@ class YamlDict:
             self.__dicts = dicts
         else:
             self.__dicts = [dicts]
-    def get(self, key, default=None):
+    def get(self, key: str, default=None):
         for d in self.__dicts:
             if key in d:
                 return d[key]
         return default
+    def getBool(self, key: str, default: bool) -> bool:
+        x = self.get(key)
+        if x is None:
+            return default
+        if not isinstance(x, bool):
+            abort(f'Config option "{key} must be a boolean')
+        return x
+    def getInt(self, key: str, default: int) -> int:
+        x = self.get(key)
+        if x is None:
+            return default
+        if not isinstance(x, int):
+            abort(f'Config option "{key} must be an int')
+        return x
+    def getStr(self, key: str) -> Optional[str]:
+        x = self.get(key)
+        if x is None:
+            return None
+        if not isinstance(x, str):
+            abort(f'Config option "{key} must be a string: {x}')
+        return x
     def items(self):
         return self.__dicts[0].items()
     def extend(self, d):
@@ -31,8 +52,8 @@ class PythonAssignmentConfig:
     checkLoad: bool    # only check that the file loads (without type checking)
     @staticmethod
     def parse(v: YamlDict):
-        wypp = v.get('python-wypp', True)
-        load = v.get('python-load', True)
+        wypp = v.getBool('python-wypp', True)
+        load = v.getBool('python-load', True)
         return PythonAssignmentConfig(wypp, load)
     @property
     def typecheck(self):
@@ -43,7 +64,7 @@ class Assignment:
     sheet: str
     id: str
     points: int
-    src: str         # the name of the source file
+    src: Optional[str]         # the name of the source file
     tests: list[str] # test files, can be empty
     testFilter: Optional[str]
     testOkRequired: bool
@@ -51,17 +72,17 @@ class Assignment:
     pythonConfig: PythonAssignmentConfig
     extraFiles: list[str] # auxiliary files that can be used by the student code
     @staticmethod
-    def parse(sheet: str, v: YamlDict, id: int):
-        src = v.get('src')
+    def parse(sheet: str, v: YamlDict, id: str) -> Assignment:
+        src = v.getStr('src')
         tests = asList(v.get('test', [])) + asList(v.get('tests', []))
         testFilter = v.get('test-filter')
         extras = asList(v.get('extras', []))
-        points = v.get('points', -1)
+        points = v.getInt('points', -1)
         try:
             points = int(points)
         except ValueError:
             bug('error parsing exercise.yaml: points must be a number')
-        testOkRequired = v.get('test-ok-required', False)
+        testOkRequired = v.getBool('test-ok-required', False)
         testScript = v.get('test-script')
         py = PythonAssignmentConfig.parse(v)
         return Assignment(sheet, id, points, src, tests, testFilter, testOkRequired, testScript, py, extras)
@@ -72,6 +93,7 @@ assignmentIdRe = re.compile(r'\d+[a-z]?')
 class Exercise:
     sheet: str
     assignments: list[Assignment]
+    @staticmethod
     def parse(sheet: str, ymlDict: YamlDict) -> Exercise:
         assignments = []
         for k, v in ymlDict.items():

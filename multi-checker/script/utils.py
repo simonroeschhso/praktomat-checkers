@@ -3,11 +3,11 @@ from typing import *
 from shell import *
 import codecs
 
-def bug(msg: str):
+def bug(msg: str) -> NoReturn:
     print('INTERNAL ERROR: ' + msg)
     sys.exit(1)
 
-def abort(msg: str):
+def abort(msg: str) -> NoReturn:
     print('FEHLER: ' + msg)
     sys.exit(1)
 
@@ -15,7 +15,7 @@ def readFile(name):
     with open(name, 'r', encoding='utf-8') as f:
         return f.read()
 
-def asList(x):
+def asList(x: Any) -> list:
     if type(x) == list:
         return x
     if type(x) == tuple:

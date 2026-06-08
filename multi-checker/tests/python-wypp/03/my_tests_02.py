@@ -12,5 +12,8 @@ class TestIt(unittest.TestCase):
     def test_my3(self):
         self.assertEqual(my_solution(3), 6)
 
-if __name__ in ['__main__', '__wypp__']:
+if __name__ == '__wypp__':
+    import wypp
+    wypp.runUnittests(globals())
+elif __name__ == '__main__':
     unittest.main()

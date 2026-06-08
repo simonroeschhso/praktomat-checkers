@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 
 @dataclass
 class JavaOptions(Options):
-    sheet: str
+    sheet: Optional[str]
     gradleBuildFile: str
     runCheckstyle: bool
     checkstylePath: str
@@ -26,12 +26,13 @@ checkstyleConfig = pjoin(os.path.realpath(os.path.dirname(__file__)), 'checkstyl
 def execGradle(task: str, offline: bool, studentDir: str, testDir: str='test-src',
                testFilter: str='*', timeout: Optional[int] = None):
     cands = []
+    buildFile = None
     for x in ['build.gradle.kts', 'build.gradle']:
         buildFile = abspath(pjoin(studentDir, x))
         if isFile(buildFile):
             break
         cands.append(buildFile)
-    else:
+    if buildFile is None:
         abort(f'No build file found: {cands}')
     cmd = [
         'gradle',
@@ -150,7 +151,7 @@ def srcExists(s: str) -> bool:
 
 def checkFilesExist(ass: list[Assignment], prjDir: str):
     missing = []
-    prjDir.rstrip('/') + '/'
+    prjDir = prjDir.rstrip('/') + '/'
     for a in ass:
         if a.src is None:
             # Nothing specified -> skip
@@ -215,9 +216,7 @@ def checkWithSourceDir(opts: JavaOptions, projectDir: str, sheetDir: str, ass: l
                 abort(f'Configuration error: test directory {td} does not exist in {sheetDir}.')
 
         if len(testDirectories) > 0:
-            testFilter = a.testFilter
-            if not testFilter:
-                testFilter = '*'
+            testFilter = a.testFilter or '*'
             withLimitedDir(sheetDir, testDirectories, lambda d: checkTest(opts, a, projectDir, d, testFilter, testCtx, ctx))
     outputResultsAndExit(ctx)
 
@@ -230,10 +229,10 @@ def check(opts: JavaOptions):
     debug(f'projectDir={projectDir}')
     fixEncodingRecursively(projectDir, 'java')
     if opts.assignments:
-        ex.ensureAssignmentsDefined(opts.assignments)
+        ex.ensureAssignmentsDefined(asList(opts.assignments))
         l = asList(opts.assignments)
         ass = [a for a in ex.assignments if a.id in l]
-        subs = set([dirnameForSource(a.src) for a in ass])
+        subs = set([dirnameForSource(a.src) for a in ass if a.src is not None])
         for sub in subs:
             if not isDir(pjoin(projectDir, sub)):
                 abort(f'Directory {sub} required for one of the selected assignments does not exist')

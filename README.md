@@ -25,7 +25,7 @@ To be used with python, haskell and Java submissions.
 See `multi-checker/tests/runTests.py` for examples showcasing these checkers.
 
 In principle, multi-checker could be separated into a python, a Java, and a haskell checker.
-But the checker script (files in `multi-checker/scripts/`) shares some logic between
+But the checker script (files in `multi-checker/script/`) shares some logic between
 both languages, so we created only one checker for simplicity.
 
 Commandline options: invoke with `--help`
@@ -38,8 +38,9 @@ Environment variables:
 ## How it works
 
 Praktomat has the `ScriptChecker`, which simply runs a shell script
-against the student submission. The exit code of this shell script
-communicates the result of the checker back to praktomat.
+against the student submission. The shell script is executed
+inside the directory containing the student submission. The exit code
+of this shell script communicates the result of the checker back to praktomat.
 
 The shell script runs either in the same environment as praktomat (same
 machine or same docker container) or it runs inside an extra docker container.
@@ -93,3 +94,25 @@ Running checkers with Docker enforces several restrictions:
   in the preceding step. When the script is execute, the current
   working directory contains the file the student submitted, already in
   unzipped form.
+
+## Internal notes
+
+### How external dir is propagated
+
+* `PRAKTOMAT_CHECKER_EXTERNAL_DIR` is set in the environment (docker-compose.yaml)
+  * Might contain `${TASK_ID_CUSTOM}`, which will be replaced by the value of a text field in the
+    configuration of the task
+* The env var is used to configure the praktomat setting `DOCKER_CONTAINER_EXTERNAL_DIR`
+  * praktomat-docker
+* The `DOCKER_CONTAINER_EXTERNAL_DIR` setting is used to create the `--volume=...:/external:ro`
+  cmdline flag when running then checker.
+  * praktomat in `safeexec.py`
+  * this is where `${TASK_ID_CUSTOM}` gets replaced
+
+How to get the sample solutions back in?
+Here is a simple but flexible solution:
+
+* A task in praktomat can have it's own volumen mapping. Simple a textfield, and then you
+  configure `DIR_ON_THE_HOST_SYSTEM:/external_solution:ro` there
+* The praktomat checker gets a new commandline option `--solution-dir`
+* We also need to configure networkability for the LLM-Tutor task.
