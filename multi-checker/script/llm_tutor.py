@@ -20,7 +20,7 @@ class LlmTutorOptions(Options):
     pdf_dir: str
     fakeLlm: bool
     configApi: str
-    sheet: Optional[str] = None
+    sheet: Optional[str]
    
    
 # alle strings sind als pfad hier weitergegeben
@@ -40,8 +40,8 @@ def runLlmTutor (llmTutorPfad: str, fake_llm: bool, id: str, sampleSolution: str
             print(args , "\n")
             return 
     else:
-        print("llmTutorPfad =", llmTutorPfad)
-        print("args =", args)
+        debug("llmTutorPfad =", llmTutorPfad)
+        debug("args =", args)
         res = run(args, onError='ignore', stderrToStdout=True, captureStdout=True)
         print(res.stdout)
 
@@ -74,7 +74,7 @@ def check(opts: LlmTutorOptions):
             pdf = pjoin(getPdfDir(opts.pdf_dir), assignemnt.extraFiles[0])
 
             # student Solution
-            print("opts.sourceDir =", opts.sourceDir)
+            debug("opts.sourceDir =", opts.sourceDir)
             # nestedSourceDir = findSolutionDir(opts.sourceDir)
             student_pfad = pjoin (opts.sourceDir, assignemnt.src)
 
