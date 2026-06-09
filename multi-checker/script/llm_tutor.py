@@ -70,7 +70,7 @@ def check(opts: LlmTutorOptions):
 
             # aufgabe pfad extrahieren
             if not assignemnt.pdf:
-                configError(f'No extra file defined for assignment {assignemnt.pdf}')
+                configError(f'No extra file defined for assignment {assignemnt.id}')
             pdf = pjoin(getPdfDir(opts.pdf_dir), assignemnt.pdf)
 
             # student Solution
@@ -79,7 +79,7 @@ def check(opts: LlmTutorOptions):
             student_pfad = pjoin (opts.sourceDir, assignemnt.src)
 
             #api 
-            api = parseConfig(pjoin(opts.configApi, 'api.yaml'))
+            api = parseConfig(pjoin(opts.configApi, 'config.yaml'))
 
             # Result von Sprachmodell
             runLlmTutor(llmTutorPfad=opts.llm_tutor_dir,

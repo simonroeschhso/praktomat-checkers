@@ -21,7 +21,7 @@ def parseArgs():
     parser.add_argument('--result-file', metavar='FILE', type=str,
                         help='File where test results are stored as a pickled python dict.\n' +
                             'See TestCtx.asDict for the format of the dict.')
-    parser.add_argument("--praktomat-checker-external-dir", metavar='DIR', type=str, 
+    parser.add_argument("--config-dir", metavar='DIR', type=str, 
                         help="Directory with API key needed for llm-tutor")
     subparsers = parser.add_subparsers(help='Commands', dest='cmd')
     parser.add_argument('--debug', help='Enable debug output',
@@ -189,9 +189,8 @@ def main():
             sourceDir=submissionDir,
             testDir=testDir,
             resultFile=resultFile,
-            configApi = args.praktomat_checker_external_dir
+            configApi = args.config_dir
           
-           
         )
         debug(f'Running LLM tutor checks, options: {opts}')
         llm_tutor.check(opts)
