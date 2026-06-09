@@ -1,4 +1,4 @@
 3:
   src: pizza.py
-  test: pizza.py
-  extras: P04-mixed_blatt-04.pdf
+  sampleSolution: muster_pizza.py
+  pdf: P04-mixed_blatt-04.pdf

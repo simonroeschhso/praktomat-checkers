@@ -63,15 +63,15 @@ def check(opts: LlmTutorOptions):
         for assignemnt in ex.assignments:
              
             # pfad zu Musterlösung (mount a dir > tests/llm-tutor/sampleSolution > solution)
-            if not assignemnt.tests:
+            if not assignemnt.sampleSolution:
                 configError(f'No test file defined for assignment {assignemnt.id}')
-            exSampleSolution_pfad = pjoin(getSolutionDir(opts.solution_dir), assignemnt.tests[0])
+            exSampleSolution_pfad = pjoin(getSolutionDir(opts.solution_dir), assignemnt.sampleSolution)
 
 
             # aufgabe pfad extrahieren
-            if not assignemnt.extraFiles:
-                configError(f'No extra file defined for assignment {assignemnt.id}')
-            pdf = pjoin(getPdfDir(opts.pdf_dir), assignemnt.extraFiles[0])
+            if not assignemnt.pdf:
+                configError(f'No extra file defined for assignment {assignemnt.pdf}')
+            pdf = pjoin(getPdfDir(opts.pdf_dir), assignemnt.pdf)
 
             # student Solution
             debug("opts.sourceDir =", opts.sourceDir)

@@ -71,6 +71,8 @@ class Assignment:
     testScript: Optional[str]
     pythonConfig: PythonAssignmentConfig
     extraFiles: list[str] # auxiliary files that can be used by the student code
+    pdf: Optional[str] = None
+    sampleSolution = None
     @staticmethod
     def parse(sheet: str, v: YamlDict, id: str) -> Assignment:
         src = v.getStr('src')
