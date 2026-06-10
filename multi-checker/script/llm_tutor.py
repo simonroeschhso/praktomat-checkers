@@ -10,7 +10,7 @@ from config import *
 from exercise import parseExercise
 
 
-def configError(s):
+def configError(s) -> NoReturn:
     abort('Config error: ' + s)
 
 @dataclass
@@ -77,6 +77,9 @@ def check(opts: LlmTutorOptions):
             # student Solution
             debug(f'opts.sourceDir = {opts.sourceDir}')
             # nestedSourceDir = findSolutionDir(opts.sourceDir)
+
+            if assignemnt.src is None:
+                configError(f'No source file defined for assignment {assignemnt.id}')
             student_pfad = pjoin(opts.sourceDir, assignemnt.src)
 
             #api 
