@@ -57,7 +57,6 @@ def parseArgs():
     llm.add_argument('--sheet', metavar='X', type=str, help='Identifier for sheet')
     llm.add_argument('--fake-llm', action= 'store_true',default=False, 
                      help='used just to test the system')
-    llm.add_argument("--api")
 
     (known, other) = parser.parse_known_args()
     if '--debug' in other:
