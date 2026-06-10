@@ -174,13 +174,15 @@ def main():
         debug(f'Running Java checks, options: {opts}')
         java.check(opts)
     elif cmd == 'llm-tutor':
+        sheet = args.sheet
+        if not sheet:
+            sheet = getSheetFromEnv(testDir)
+            
         if not args.llm_tutor_dir:
             llm_tutor_dir = '/llm-tutor'
         else:
             llm_tutor_dir = args.llm_tutor_dir
-            sheet = args.sheet
-            if not sheet:
-                sheet = getSheetFromEnv(testDir)
+            
         # sheet optional; für deinen Durchstoß nicht nötig
         opts = llm_tutor.LlmTutorOptions(
             llm_tutor_dir = llm_tutor_dir,
