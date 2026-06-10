@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
-import os, sys, shlex
+import os
 
-import yaml  # pip install pyyaml
 from shell import *
 from utils import *
 from common import *
@@ -51,6 +50,10 @@ def runLlmTutor (llmTutorPfad: str, fake_llm: bool, id: str, sampleSolution: str
     
 
 def check(opts: LlmTutorOptions):
+    if os.getenv('ALLOW_LLM_UPLOAD') != '1':
+        print('Uploading the solution to an LLM was not permitted. Aborting.')
+        return
+
     # test dir, pfad zum exercise.yaml (mount a dir tests/llm-tutor > externel)
     exTest_dir = getSheetDir(opts.testDir, opts.sheet)
     exYaml = pjoin(exTest_dir, 'exercise.yaml')
