@@ -143,6 +143,8 @@ def main():
             wypp = '/wypp'
         sheet = args.sheet
         if not sheet:
+            if testDir is None:
+                raise ValueError("testDir is required")
             sheet = getSheetFromEnv(testDir)
         assignments = getAssignments(args.assignment)
         opts = python.PythonOptions(submissionDir, testDir, resultFile, sheet, assignments, wypp)
@@ -151,6 +153,8 @@ def main():
     elif cmd == 'haskell':
         sheet = args.sheet
         if not sheet:
+            if testDir is None:
+                raise ValueError("testDir is required")
             sheet = getSheetFromEnv(testDir)
         opts = haskell.HaskellOptions(submissionDir, testDir, resultFile, sheet)
         debug(f'Running haskell checks, options: {opts}')
@@ -158,6 +162,8 @@ def main():
     elif cmd == 'java':
         sheet = args.sheet
         if not sheet:
+            if testDir is None:
+                raise ValueError("testDir is required")
             sheet = getSheetFromEnv(testDir)
         offline = not args.gradle_online
         assignments = getAssignments(args.assignment)
@@ -176,8 +182,10 @@ def main():
     elif cmd == 'llm-tutor':
         sheet = args.sheet
         if not sheet:
+            if testDir is None:
+                raise ValueError("testDir is required")
             sheet = getSheetFromEnv(testDir)
-            
+
         if not args.llm_tutor_dir:
             llm_tutor_dir = '/llm-tutor'
         else:

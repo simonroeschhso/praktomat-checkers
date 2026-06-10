@@ -40,8 +40,8 @@ def runLlmTutor (llmTutorPfad: str, fake_llm: bool, id: str, sampleSolution: str
             print(args , "\n")
             return 
     else:
-        debug("llmTutorPfad =", llmTutorPfad)
-        debug("args =", args)
+        debug(f'llmTutorPfad = {llmTutorPfad}')
+        debug(f'args = {args}')
         res = run(args, onError='ignore', stderrToStdout=True, captureStdout=True)
         print(res.stdout)
 
@@ -63,20 +63,21 @@ def check(opts: LlmTutorOptions):
         for assignemnt in ex.assignments:
              
             # pfad zu Musterlösung (mount a dir > tests/llm-tutor/sampleSolution > solution)
-            if not assignemnt.sampleSolution:
+            if assignemnt.sampleSolution is None:
                 configError(f'No test file defined for assignment {assignemnt.id}')
+
             exSampleSolution_pfad = pjoin(getSolutionDir(opts.solution_dir), assignemnt.sampleSolution)
 
 
             # aufgabe pfad extrahieren
-            if not assignemnt.pdf:
+            if assignemnt.pdf is None:
                 configError(f'No extra file defined for assignment {assignemnt.id}')
             pdf = pjoin(getPdfDir(opts.pdf_dir), assignemnt.pdf)
 
             # student Solution
-            debug("opts.sourceDir =", opts.sourceDir)
+            debug(f'opts.sourceDir = {opts.sourceDir}')
             # nestedSourceDir = findSolutionDir(opts.sourceDir)
-            student_pfad = pjoin (opts.sourceDir, assignemnt.src)
+            student_pfad = pjoin(opts.sourceDir, assignemnt.src)
 
             #api 
             api = parseConfig(pjoin(opts.configApi, 'config.yaml'))
