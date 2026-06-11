@@ -1,4 +1,4 @@
-3:
-  src: pizza.py
-  sampleSolution: muster_pizza.py
-  pdf: P04-mixed_blatt-04.pdf
+1:
+  src: HashTableOpen.java
+  sampleSolution: HashTableOpen.java
+  pdf: blatt-11.pdf
